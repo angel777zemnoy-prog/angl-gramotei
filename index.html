@@ -58,6 +58,16 @@
         <!-- РЕЗУЛЬТАТЫ -->
         <div id="result-screen">
             <h3>Проверь себя! ✅</h3>
+            <div id="check-ui" style="margin-bottom:15px; border-bottom:2px solid #93a1a1; padding-bottom:10px;">
+                <button id="start-check-btn" onclick="startAutoCheck()" style="background:#2aa198; width:100%;">🔊 НАЧАТЬ АВТО-ПРОВЕРКУ</button>
+                <div id="check-controls" style="display:none; text-align:center;">
+                    <div id="check-status" style="font-weight:bold; color:#b58900; margin-bottom:5px;">ИДЕТ ПРОВЕРКА...</div>
+                    <button id="pause-check-btn" onclick="pauseCheck()" style="background:#cb4b16; width:auto; padding:10px 20px;">ПАУЗА</button>
+                    <button id="resume-check-btn" onclick="resumeCheck()" style="background:#268bd2; width:auto; padding:10px 20px; display:none;">ПРОДОЛЖИТЬ</button>
+                    <button onclick="repeatCheck()" style="background:#b58900; width:auto; padding:10px 20px;">ПОВТОР СЛОВА</button>
+                </div>
+            </div>
+
             <div id="results-list"></div>
             <button onclick="location.reload()" style="background:#268bd2; width:100%; margin-top:15px;">ПОВТОРИТЬ ЗАНЯТИЕ</button>
         </div>
@@ -139,6 +149,56 @@
             `).join('');
             document.getElementById('result-screen').style.display = 'block';
             speak("Well done! Check your work.", 'en-US');
+        }
+
+        
+        let checkIdx = 0, checkTimer = null, checkPaused = false;
+
+        function startAutoCheck() {
+            checkIdx = 0;
+            checkPaused = false;
+            document.getElementById('check-controls').style.display = 'block';
+            document.getElementById('start-check-btn').style.display = 'none';
+            runAutoCheck();
+        }
+
+        function runAutoCheck() {
+            if (checkIdx < session.length && !checkPaused) {
+                const item = session[checkIdx];
+                // Подсвечиваем текущее слово
+                const rows = document.querySelectorAll('.result-row');
+                rows.forEach(r => r.style.background = 'transparent');
+                if(rows[checkIdx]) rows[checkIdx].style.background = '#eee8d5';
+                
+                speakFull(item);
+                checkIdx++;
+                checkTimer = setTimeout(runAutoCheck, 4000); // 4 сек на слово + перевод
+            } else if (checkIdx >= session.length) {
+                document.getElementById('check-status').innerText = "ПРОВЕРКА ЗАВЕРШЕНА";
+                document.getElementById('check-controls').style.display = 'none';
+            }
+        }
+
+        function pauseCheck() {
+            clearTimeout(checkTimer);
+            checkPaused = true;
+            window.speechSynthesis.cancel();
+            document.getElementById('pause-check-btn').style.display = 'none';
+            document.getElementById('resume-check-btn').style.display = 'inline-block';
+        }
+
+        function resumeCheck() {
+            checkPaused = false;
+            document.getElementById('pause-check-btn').style.display = 'inline-block';
+            document.getElementById('resume-check-btn').style.display = 'none';
+            runAutoCheck();
+        }
+
+        function repeatCheck() {
+            clearTimeout(checkTimer);
+            checkIdx--;
+            if(checkIdx < 0) checkIdx = 0;
+            runAutoCheck();
         }
 
         initGrid();
