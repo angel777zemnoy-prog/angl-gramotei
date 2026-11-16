@@ -10,11 +10,11 @@
         h1 { color: #b58900; margin-bottom: 5px; font-size: 1.8em; }
         .preamble { text-align: left; background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 15px; font-size: 0.95em; border-left: 5px solid #268bd2; line-height: 1.4; font-style: italic; color: #073642; }
         .study-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
-        .study-item { background: #fff; padding: 20px; border-radius: 15px; border: 2px solid #93a1a1; cursor: pointer; transition: 0.2s; }
+        .study-item { background: #fff; padding: 20px; border-radius: 15px; border: 2px solid #93a1a1; cursor: pointer; transition: 0.2s; position: relative; }
         .study-item:hover { background: #eee8d5; transform: scale(1.02); }
-        .word-main { font-size: 2em; font-weight: bold; color: #dc322f; display: block; }
-        .word-trans { color: #268bd2; font-size: 1.1em; display: block; margin: 5px 0; }
-        .word-ru { color: #859900; font-size: 1em; font-weight: bold; }
+        .word-main { font-size: 2.2em; font-weight: bold; color: #dc322f; display: block; pointer-events: none; }
+        .word-trans { color: #268bd2; font-size: 1.1em; display: block; margin: 5px 0; pointer-events: none; }
+        .word-ru { color: #859900; font-size: 1.1em; font-weight: bold; pointer-events: none; }
         #word-display { font-size: 3em; font-weight: bold; color: #dc322f; margin: 30px 0; min-height: 1.5em; }
         .btn-group { display: flex; flex-direction: column; gap: 10px; align-items: center; }
         button { border: none; padding: 15px 30px; font-size: 1.2em; border-radius: 12px; cursor: pointer; font-weight: bold; color: white; width: 320px; }
@@ -52,7 +52,6 @@
 
         <div id="result-screen">
             <h3>Проверь себя! ✅</h3>
-            
             <div id="check-ui" style="margin-bottom:15px; border-bottom:2px solid #93a1a1; padding-bottom:10px;">
                 <button id="start-check-btn" onclick="startAutoCheck()" style="background:#2aa198; width:100%;">🔊 НАЧАТЬ АВТО-ПРОВЕРКУ</button>
                 <div id="check-controls" style="display:none; text-align:center;">
@@ -62,7 +61,6 @@
                     <button onclick="repeatCheck()" style="background:#b58900; width:auto; padding:10px 20px;">ПОВТОР СЛОВА</button>
                 </div>
             </div>
-
             <div id="results-list"></div>
             <button onclick="location.reload()" style="background:#268bd2; width:100%; margin-top:15px;">ПОВТОРИТЬ ЗАНЯТИЕ</button>
         </div>
@@ -72,28 +70,43 @@
         const vocab = [{"display": "Ant", "trans": "[ænt]", "ru": "Муравей"}, {"display": "Cat", "trans": "[kæt]", "ru": "Кот"}, {"display": "Egg", "trans": "[eg]", "ru": "Яйцо"}, {"display": "Glass", "trans": "[ɡlɑːs]", "ru": "Стакан"}, {"display": "Bed", "trans": "[bed]", "ru": "Кровать"}, {"display": "Dog", "trans": "[dɒɡ]", "ru": "Собака"}, {"display": "Flag", "trans": "[flæɡ]", "ru": "Флаг"}, {"display": "Horse", "trans": "[hɔːs]", "ru": "Лошадь"}, {"display": "Ink", "trans": "[ɪŋk]", "ru": "Чернила"}, {"display": "Kangaroo", "trans": "[ˌkæŋɡəˈruː]", "ru": "Кенгуру"}, {"display": "Mouse", "trans": "[maʊs]", "ru": "Мышь"}, {"display": "Orange", "trans": "[ˈɒrɪndʒ]", "ru": "Апельсин"}, {"display": "Pin", "trans": "[pɪn]", "ru": "Булавка"}, {"display": "Jug", "trans": "[dʒʌɡ]", "ru": "Кувшин"}, {"display": "Lamp", "trans": "[læmp]", "ru": "Лампа"}, {"display": "Nest", "trans": "[nest]", "ru": "Гнездо"}, {"display": "Queen", "trans": "[kwiːn]", "ru": "Королева"}, {"display": "Rabbit", "trans": "[ˈræbɪt]", "ru": "Кролик"}, {"display": "Umbrella", "trans": "[ʌmˈbrelə]", "ru": "Зонт"}, {"display": "Window", "trans": "[ˈwɪndəʊ]", "ru": "Окно"}, {"display": "Yacht", "trans": "[jɒt]", "ru": "Яхта"}, {"display": "Snake", "trans": "[sneɪk]", "ru": "Змея"}, {"display": "Tree", "trans": "[triː]", "ru": "Дерево"}, {"display": "Vest", "trans": "[vest]", "ru": "Жилет"}, {"display": "Box", "trans": "[bɒks]", "ru": "Коробка"}, {"display": "Zip", "trans": "[zɪp]", "ru": "Молния"}];
         let queue = [], idx = 0, timer = null, session = [];
         let checkIdx = 0, checkTimer = null, checkPaused = false;
+        const audio = new Audio();
 
-        function speak(text, lang = 'en-US') {
-            window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = lang; msg.rate = 0.8;
-            window.speechSynthesis.speak(msg);
+        function speak(text, lang) {
+            // Используем Google TTS для надежной озвучки без сбоев браузера
+            const tl = lang === 'en-US' ? 'en' : 'ru';
+            const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${tl}&client=tw-ob&q=${encodeURIComponent(text)}`;
+            audio.src = url;
+            audio.play().catch(e => {
+                // Fallback на speechSynthesis если онлайн-TTS заблокирован
+                window.speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(text);
+                msg.lang = lang; msg.rate = 0.8;
+                window.speechSynthesis.speak(msg);
+            });
         }
 
         function speakFull(item) {
             speak(item.display, 'en-US');
-            setTimeout(() => speak(item.ru, 'ru-RU'), 1500);
+            // Увеличиваем задержку для перевода
+            setTimeout(() => speak(item.ru, 'ru-RU'), 1800);
         }
 
         function initGrid() {
             const grid = document.getElementById('vocab-grid');
-            grid.innerHTML = vocab.map(i => `
-                <div class="study-item" onclick="speakFull(${JSON.stringify(i)})">
+            grid.innerHTML = vocab.map((i, index) => `
+                <div class="study-item" id="item-${index}">
                     <span class="word-main">${i.display}</span>
                     <span class="word-trans">${i.trans}</span>
                     <span class="word-ru">${i.ru}</span>
                 </div>
             `).join('');
+            
+            // Принудительно вешаем обработчики после рендеринга
+            vocab.forEach((i, index) => {
+                const el = document.getElementById(`item-${index}`);
+                if(el) el.addEventListener('click', () => speakFull(i));
+            });
         }
 
         function startDictation() {
@@ -113,23 +126,40 @@
             } else { finish(); }
         }
 
-        function pause() { clearTimeout(timer); window.speechSynthesis.cancel(); document.getElementById('stop-btn').style.display = 'none'; document.getElementById('resume-btn').style.display = 'block'; }
-        function resume() { document.getElementById('stop-btn').style.display = 'block'; document.getElementById('resume-btn').style.display = 'none'; run(); }
+        function pause() { 
+            clearTimeout(timer); 
+            audio.pause();
+            window.speechSynthesis.cancel(); 
+            document.getElementById('stop-btn').style.display = 'none'; 
+            document.getElementById('resume-btn').style.display = 'block'; 
+            document.getElementById('word-display').innerText = "ПАУЗА"; 
+        }
+        
+        function resume() { 
+            document.getElementById('stop-btn').style.display = 'block'; 
+            document.getElementById('resume-btn').style.display = 'none'; 
+            run(); 
+        }
 
         function finish() {
             document.getElementById('dictation-view').style.display = 'none';
             const list = document.getElementById('results-list');
-            list.innerHTML = session.map(i => `
+            list.innerHTML = session.map((i, index) => `
                 <div class="result-row">
                     <div>
                         <span class="word-main" style="font-size:1.2em;">${i.display}</span>
                         <span class="word-trans">${i.trans}</span> — ${i.ru}
                     </div>
-                    <button onclick="speakFull(${JSON.stringify(i)})" style="width:auto; padding:5px 15px; background:#2aa198;">🔊</button>
+                    <button id="res-btn-${index}" style="width:auto; padding:5px 15px; background:#2aa198;">🔊</button>
                 </div>
             `).join('');
+            
+            session.forEach((i, index) => {
+                document.getElementById(`res-btn-${index}`).onclick = () => speakFull(i);
+            });
+
             document.getElementById('result-screen').style.display = 'block';
-            speak("Well done!", 'en-US');
+            speak("Finished!", 'en-US');
         }
 
         function startAutoCheck() {
@@ -146,7 +176,7 @@
                 rows.forEach(r => r.style.background = 'transparent');
                 if(rows[checkIdx]) rows[checkIdx].style.background = '#eee8d5';
                 speakFull(item); checkIdx++;
-                checkTimer = setTimeout(runAutoCheck, 4000);
+                checkTimer = setTimeout(runAutoCheck, 4500);
             } else if (checkIdx >= session.length) {
                 document.getElementById('check-status').innerText = "ПРОВЕРКА ЗАВЕРШЕНА";
                 document.getElementById('check-controls').style.display = 'none';
@@ -154,7 +184,9 @@
         }
 
         function pauseCheck() {
-            clearTimeout(checkTimer); checkPaused = true; window.speechSynthesis.cancel();
+            clearTimeout(checkTimer); checkPaused = true; 
+            audio.pause();
+            window.speechSynthesis.cancel();
             document.getElementById('pause-check-btn').style.display = 'none';
             document.getElementById('resume-check-btn').style.display = 'inline-block';
         }
