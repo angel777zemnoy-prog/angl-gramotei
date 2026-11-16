@@ -3,30 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Literacy Trainer — Грамотеи</title>
+    <title>English Literacy Trainer — Англ Грамотей</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; text-align: center; background: #fdf6e3; color: #657b83; padding: 20px; }
         .container { background: #eee8d5; border: 4px solid #93a1a1; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
         h1 { color: #b58900; margin-bottom: 5px; font-size: 1.8em; }
         .preamble { text-align: left; background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 15px; font-size: 0.95em; border-left: 5px solid #268bd2; line-height: 1.4; font-style: italic; color: #073642; }
-        
-        /* Сетка изучения: КРУПНЫЕ СЛОВА */
         .study-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
         .study-item { background: #fff; padding: 20px; border-radius: 15px; border: 2px solid #93a1a1; cursor: pointer; transition: 0.2s; }
         .study-item:hover { background: #eee8d5; transform: scale(1.02); }
         .word-main { font-size: 2em; font-weight: bold; color: #dc322f; display: block; }
         .word-trans { color: #268bd2; font-size: 1.1em; display: block; margin: 5px 0; }
         .word-ru { color: #859900; font-size: 1em; font-weight: bold; }
-
         #word-display { font-size: 3em; font-weight: bold; color: #dc322f; margin: 30px 0; min-height: 1.5em; }
-        
         .btn-group { display: flex; flex-direction: column; gap: 10px; align-items: center; }
         button { border: none; padding: 15px 30px; font-size: 1.2em; border-radius: 12px; cursor: pointer; font-weight: bold; color: white; width: 320px; }
         #start-btn { background: #859900; }
         #stop-btn { background: #cb4b16; display: none; }
         #resume-btn { background: #268bd2; display: none; }
-        #home-btn { background: #93a1a1; }
-        
         #result-screen { display: none; margin-top: 20px; text-align: left; background: white; padding: 20px; border-radius: 12px; border: 2px solid #859900; }
         .result-row { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
     </style>
@@ -36,7 +30,6 @@
         <h1>🏙️ English Literacy Trainer</h1>
         <div class="preamble">В НАШ ЦИФРОВОЙ ВЕК НАМ ОЧЕНЬ НАДО ЗНАТЬ АНГЛИЙСКИЙ ЯЗЫК!! ДЛЯ УЧЕБЫ И РАБОТЫ ИСПОЛЬЗОВАНИЯ СОВРЕМЕННЫХ ииШЕК И ПРОСТО ИГР !! НАШ ТРЕНАЖЕР СДЕЛАЕТ НАШ КЛАСС САМЫМ ДРУЖНЫМ И ПРОДВИНУТЫМ! !! ДАВАЙТЕ ВЫУЧИМ СЛОВА И НАЧНЕМ УЧИТЬ ФРАЗЫ! ДИАЛОГИ И ДАЖЕ В ОБЫЧНОЙ ЖИЗНИ БУДЕМ ИСПОЛЬЗОВАТЬ АНГЛИЙСКУЮ РЕЧЬ И ТРЕНИРОВАТЬСЯ!!</div>
 
-        <!-- РЕЖИМ ИЗУЧЕНИЯ -->
         <div id="study-view">
             <div class="study-grid" id="vocab-grid"></div>
             <div class="btn-group">
@@ -44,20 +37,19 @@
             </div>
         </div>
 
-        <!-- РЕЖИМ ДИКТАНТА -->
         <div id="dictation-view" style="display:none;">
             <div style="margin-bottom: 15px;">Пауза: <input type="number" id="gap" value="10" min="3" style="width: 50px;"> сек.</div>
             <div id="word-display">ГОТОВЫ?</div>
             <div class="btn-group">
                 <button id="stop-btn" onclick="pause()">ПАУЗА</button>
                 <button id="resume-btn" onclick="resume()">ПРОДОЛЖИТЬ</button>
-                <button id="home-btn" onclick="location.reload()">ВЫХОД НА ГЛАВНУЮ</button>
+                <button onclick="location.reload()" style="background:#93a1a1;">ВЫХОД НА ГЛАВНУЮ</button>
             </div>
         </div>
 
-        <!-- РЕЗУЛЬТАТЫ -->
         <div id="result-screen">
             <h3>Проверь себя! ✅</h3>
+            
             <div id="check-ui" style="margin-bottom:15px; border-bottom:2px solid #93a1a1; padding-bottom:10px;">
                 <button id="start-check-btn" onclick="startAutoCheck()" style="background:#2aa198; width:100%;">🔊 НАЧАТЬ АВТО-ПРОВЕРКУ</button>
                 <div id="check-controls" style="display:none; text-align:center;">
@@ -76,12 +68,12 @@
     <script>
         const vocab = [{"display": "Ant", "trans": "[ænt]", "ru": "Муравей"}, {"display": "Cat", "trans": "[kæt]", "ru": "Кот"}, {"display": "Egg", "trans": "[eg]", "ru": "Яйцо"}, {"display": "Glass", "trans": "[ɡlɑːs]", "ru": "Стакан"}, {"display": "Bed", "trans": "[bed]", "ru": "Кровать"}, {"display": "Dog", "trans": "[dɒɡ]", "ru": "Собака"}, {"display": "Flag", "trans": "[flæɡ]", "ru": "Флаг"}, {"display": "Horse", "trans": "[hɔːs]", "ru": "Лошадь"}, {"display": "Ink", "trans": "[ɪŋk]", "ru": "Чернила"}, {"display": "Kangaroo", "trans": "[ˌkæŋɡəˈruː]", "ru": "Кенгуру"}, {"display": "Mouse", "trans": "[maʊs]", "ru": "Мышь"}, {"display": "Orange", "trans": "[ˈɒrɪndʒ]", "ru": "Апельсин"}, {"display": "Pin", "trans": "[pɪn]", "ru": "Булавка"}, {"display": "Jug", "trans": "[dʒʌɡ]", "ru": "Кувшин"}, {"display": "Lamp", "trans": "[læmp]", "ru": "Лампа"}, {"display": "Nest", "trans": "[nest]", "ru": "Гнездо"}, {"display": "Queen", "trans": "[kwiːn]", "ru": "Королева"}, {"display": "Rabbit", "trans": "[ˈræbɪt]", "ru": "Кролик"}, {"display": "Umbrella", "trans": "[ʌmˈbrelə]", "ru": "Зонт"}, {"display": "Window", "trans": "[ˈwɪndəʊ]", "ru": "Окно"}, {"display": "Yacht", "trans": "[jɒt]", "ru": "Яхта"}, {"display": "Snake", "trans": "[sneɪk]", "ru": "Змея"}, {"display": "Tree", "trans": "[triː]", "ru": "Дерево"}, {"display": "Vest", "trans": "[vest]", "ru": "Жилет"}, {"display": "Box", "trans": "[bɒks]", "ru": "Коробка"}, {"display": "Zip", "trans": "[zɪp]", "ru": "Молния"}];
         let queue = [], idx = 0, timer = null, session = [];
+        let checkIdx = 0, checkTimer = null, checkPaused = false;
 
         function speak(text, lang = 'en-US') {
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = lang;
-            msg.rate = 0.8;
+            msg.lang = lang; msg.rate = 0.8;
             window.speechSynthesis.speak(msg);
         }
 
@@ -106,34 +98,20 @@
             document.getElementById('dictation-view').style.display = 'block';
             document.getElementById('stop-btn').style.display = 'block';
             queue = [...vocab].sort(() => Math.random() - 0.5);
-            idx = 0; session = [];
-            run();
+            idx = 0; session = []; run();
         }
 
         function run() {
             if (idx < queue.length) {
-                const item = queue[idx];
-                session.push(item);
+                const item = queue[idx]; session.push(item);
                 document.getElementById('word-display').innerText = "👂 Слушай...";
-                speak(item.display, 'en-US');
-                idx++;
+                speak(item.display, 'en-US'); idx++;
                 timer = setTimeout(run, document.getElementById('gap').value * 1000);
             } else { finish(); }
         }
 
-        function pause() {
-            clearTimeout(timer);
-            window.speechSynthesis.cancel();
-            document.getElementById('stop-btn').style.display = 'none';
-            document.getElementById('resume-btn').style.display = 'block';
-            document.getElementById('word-display').innerText = "ПАУЗА";
-        }
-
-        function resume() {
-            document.getElementById('stop-btn').style.display = 'block';
-            document.getElementById('resume-btn').style.display = 'none';
-            run();
-        }
+        function pause() { clearTimeout(timer); window.speechSynthesis.cancel(); document.getElementById('stop-btn').style.display = 'none'; document.getElementById('resume-btn').style.display = 'block'; }
+        function resume() { document.getElementById('stop-btn').style.display = 'block'; document.getElementById('resume-btn').style.display = 'none'; run(); }
 
         function finish() {
             document.getElementById('dictation-view').style.display = 'none';
@@ -148,15 +126,11 @@
                 </div>
             `).join('');
             document.getElementById('result-screen').style.display = 'block';
-            speak("Well done! Check your work.", 'en-US');
+            speak("Well done!", 'en-US');
         }
 
-        
-        let checkIdx = 0, checkTimer = null, checkPaused = false;
-
         function startAutoCheck() {
-            checkIdx = 0;
-            checkPaused = false;
+            checkIdx = 0; checkPaused = false;
             document.getElementById('check-controls').style.display = 'block';
             document.getElementById('start-check-btn').style.display = 'none';
             runAutoCheck();
@@ -165,14 +139,11 @@
         function runAutoCheck() {
             if (checkIdx < session.length && !checkPaused) {
                 const item = session[checkIdx];
-                // Подсвечиваем текущее слово
                 const rows = document.querySelectorAll('.result-row');
                 rows.forEach(r => r.style.background = 'transparent');
                 if(rows[checkIdx]) rows[checkIdx].style.background = '#eee8d5';
-                
-                speakFull(item);
-                checkIdx++;
-                checkTimer = setTimeout(runAutoCheck, 4000); // 4 сек на слово + перевод
+                speakFull(item); checkIdx++;
+                checkTimer = setTimeout(runAutoCheck, 4000);
             } else if (checkIdx >= session.length) {
                 document.getElementById('check-status').innerText = "ПРОВЕРКА ЗАВЕРШЕНА";
                 document.getElementById('check-controls').style.display = 'none';
@@ -180,9 +151,7 @@
         }
 
         function pauseCheck() {
-            clearTimeout(checkTimer);
-            checkPaused = true;
-            window.speechSynthesis.cancel();
+            clearTimeout(checkTimer); checkPaused = true; window.speechSynthesis.cancel();
             document.getElementById('pause-check-btn').style.display = 'none';
             document.getElementById('resume-check-btn').style.display = 'inline-block';
         }
@@ -195,9 +164,7 @@
         }
 
         function repeatCheck() {
-            clearTimeout(checkTimer);
-            checkIdx--;
-            if(checkIdx < 0) checkIdx = 0;
+            clearTimeout(checkTimer); checkIdx--; if(checkIdx < 0) checkIdx = 0;
             runAutoCheck();
         }
 
